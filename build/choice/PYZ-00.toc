@@ -1,4 +1,4 @@
-('C:\\Users\\Ian\\Desktop\\choice\\build\\choice\\PYZ-00.pyz',
+('C:\\Users\\Ian\\Documents\\GitHub\\UI-File-Move-Helper\\build\\choice\\PYZ-00.pyz',
  [('PIL',
    'C:\\Users\\Ian\\AppData\\Local\\Programs\\Python\\Python39\\lib\\site-packages\\PIL\\__init__.py',
    'PYMODULE'),

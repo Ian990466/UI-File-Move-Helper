@@ -9,14 +9,14 @@ class ImageOrganizer:
         self.root = root
         self.root.title("Image Organizer")
 
-        # 初始設定視窗
+        # Initial setup window
         self.setup_frame = tk.Frame(root)
         self.setup_frame.pack()
 
-        tk.Label(self.setup_frame, text="請選擇圖片所在路徑：").grid(row=0, column=0, sticky=tk.W, padx=5, pady=5)
-        tk.Label(self.setup_frame, text="請選擇目標文件夾所在路徑：").grid(row=1, column=0, sticky=tk.W, padx=5, pady=5)
-        tk.Label(self.setup_frame, text="請輸入目標文件夾名稱（空格分隔）：").grid(row=2, column=0, sticky=tk.W, padx=5, pady=5)
-        tk.Label(self.setup_frame, text="預覽圖片高度：").grid(row=3, column=0, sticky=tk.W, padx=5, pady=5)
+        tk.Label(self.setup_frame, text="Select the path of the images:").grid(row=0, column=0, sticky=tk.W, padx=5, pady=5)
+        tk.Label(self.setup_frame, text="Select the path of the target folder:").grid(row=1, column=0, sticky=tk.W, padx=5, pady=5)
+        tk.Label(self.setup_frame, text="Enter the names of target folders (separated by spaces):").grid(row=2, column=0, sticky=tk.W, padx=5, pady=5)
+        tk.Label(self.setup_frame, text="Preview image height:").grid(row=3, column=0, sticky=tk.W, padx=5, pady=5)
 
         self.image_path_entry = tk.Entry(self.setup_frame)
         self.image_path_entry.grid(row=0, column=1, padx=5, pady=5)
@@ -27,10 +27,10 @@ class ImageOrganizer:
         self.preview_height_entry = tk.Entry(self.setup_frame)
         self.preview_height_entry.grid(row=3, column=1, padx=5, pady=5)
 
-        tk.Button(self.setup_frame, text="選擇圖片路徑", command=self.browse_image_path).grid(row=0, column=2, padx=5, pady=5)
-        tk.Button(self.setup_frame, text="選擇目標文件夾路徑", command=self.browse_target_path).grid(row=1, column=2, padx=5, pady=5)
+        tk.Button(self.setup_frame, text="Choose image path", command=self.browse_image_path).grid(row=0, column=2, padx=5, pady=5)
+        tk.Button(self.setup_frame, text="Choose target folder path", command=self.browse_target_path).grid(row=1, column=2, padx=5, pady=5)
 
-        tk.Button(self.setup_frame, text="開始", command=self.start).grid(row=4, column=0, columnspan=3, pady=10)
+        tk.Button(self.setup_frame, text="Start", command=self.start).grid(row=4, column=0, columnspan=3, pady=10)
 
     def browse_image_path(self):
         path = filedialog.askdirectory()
@@ -53,17 +53,17 @@ class ImageOrganizer:
         self.image_list = [os.path.join(image_path, file) for file in os.listdir(image_path)
                         if file.lower().endswith(('.png', '.jpg', '.bmp'))]
         self.target_path = target_path
-        self.preview_height = preview_height  # 將 preview_height 存為 self 的屬性
+        self.preview_height = preview_height  # Store preview_height as a class attribute
 
         self.current_image_index = 0
 
         self.work_frame = tk.Frame(self.root)
         self.work_frame.pack()
 
-        # 預覽圖片
+        # Display preview image
         self.show_image()
 
-        # 在工作視窗底部排列資料夾名稱的Button
+        # Arrange folder names' buttons at the bottom of the working window
         button_row = tk.Frame(self.work_frame)
         button_row.grid(row=1, column=0, sticky='w')
 
@@ -74,7 +74,7 @@ class ImageOrganizer:
 
     def show_image(self):
         if self.current_image_index < len(self.image_list):
-            # 刪除先前的 Label
+            # Delete the previous Label if it exists
             if hasattr(self, 'image_label'):
                 self.image_label.destroy()
 
@@ -85,7 +85,7 @@ class ImageOrganizer:
 
             self.image_label = tk.Label(self.work_frame, image=img)
             self.image_label.image = img
-            self.image_label.grid(row=0, column=0, padx=10, pady=10)  # 使用 grid 佈局
+            self.image_label.grid(row=0, column=0, padx=10, pady=10)  # Use grid layout
     
     def move_to_folder(self, folder):
         if self.current_image_index < len(self.image_list):
@@ -98,9 +98,23 @@ class ImageOrganizer:
             self.image_label.destroy()
             self.show_image()
 
-            # 檢查是否處理完所有圖片，是的話關閉程式
+            # Check if all images have been processed, if yes, close the program
             if self.current_image_index == len(self.image_list):
+                self.generate_json()  # Call the function to generate JSON
                 self.root.destroy()
+
+    def generate_json(self):
+        # Create a dictionary to store information
+        data = {}
+        for folder in os.listdir(self.target_path):
+            folder_path = os.path.join(self.target_path, folder)
+            if os.path.isdir(folder_path):
+                files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
+                data[folder] = {'num_files': len(files), 'files': files}
+
+        # Write the dictionary to a JSON file
+        with open('output.json', 'w') as json_file:
+            json.dump(data, json_file, indent=4)
 
 if __name__ == "__main__":
     root = tk.Tk()
