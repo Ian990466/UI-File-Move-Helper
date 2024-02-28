@@ -71,7 +71,6 @@ class ImageOrganizer:
             button = tk.Button(button_row, text=folder, command=lambda f=folder: self.move_to_folder(f), width=15, anchor='w')
             button.grid(row=0, column=i, padx=5, pady=5, sticky='w')
 
-
     def show_image(self):
         if self.current_image_index < len(self.image_list):
             # Delete the previous Label if it exists
@@ -80,11 +79,17 @@ class ImageOrganizer:
 
             image_path = self.image_list[self.current_image_index]
             img = Image.open(image_path)
-            img.thumbnail((self.preview_height, self.preview_height))
-            img = ImageTk.PhotoImage(img)
 
-            self.image_label = tk.Label(self.work_frame, image=img)
-            self.image_label.image = img
+            # Calculate the aspect ratio to maintain proportions
+            aspect_ratio = img.width / img.height
+
+            # Resize the image to the specified height while maintaining the aspect ratio
+            img = img.resize((int(self.preview_height * aspect_ratio), self.preview_height), Image.ANTIALIAS)
+
+            self.img = ImageTk.PhotoImage(img)
+
+            self.image_label = tk.Label(self.work_frame, image=self.img)
+            self.image_label.image = self.img
             self.image_label.grid(row=0, column=0, padx=10, pady=10)  # Use grid layout
     
     def move_to_folder(self, folder):
