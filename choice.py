@@ -32,6 +32,10 @@ class ImageOrganizer:
 
         tk.Button(self.setup_frame, text="Start", command=self.start).grid(row=4, column=0, columnspan=3, pady=10)
 
+        self.zoom_factor = 1.0  # Initial zoom factor
+        self.image_label = None  # Track the image label to update the image size
+
+
     def browse_image_path(self):
         path = filedialog.askdirectory()
         self.image_path_entry.delete(0, tk.END)
@@ -51,7 +55,7 @@ class ImageOrganizer:
         self.setup_frame.destroy()
 
         self.image_list = [os.path.join(image_path, file) for file in os.listdir(image_path)
-                        if file.lower().endswith(('.png', '.jpg', '.bmp'))]
+                        if file.lower().endswith(('.png', '.jpg', '.bmp', '.jpeg', '.tif'))]
         self.target_path = target_path
         self.preview_height = preview_height  # Store preview_height as a class attribute
 
@@ -75,17 +79,36 @@ class ImageOrganizer:
     def show_image(self):
         if self.current_image_index < len(self.image_list):
             # Delete the previous Label if it exists
-            if hasattr(self, 'image_label'):
+            if self.image_label:
                 self.image_label.destroy()
 
             image_path = self.image_list[self.current_image_index]
             img = Image.open(image_path)
-            img.thumbnail((self.preview_height, self.preview_height))
+            img = self.zoom_image(img)
             img = ImageTk.PhotoImage(img)
 
             self.image_label = tk.Label(self.work_frame, image=img)
             self.image_label.image = img
             self.image_label.grid(row=0, column=0, padx=10, pady=10)  # Use grid layout
+
+            # Bind the mouse wheel event to zoom_image_on_scroll
+            self.image_label.bind("<MouseWheel>", self.zoom_image_on_scroll)
+
+    def zoom_image_on_scroll(self, event):
+        # Update the zoom factor based on the mouse wheel event
+        if event.delta > 0:
+            self.zoom_factor *= 1.1  # Zoom in
+        else:
+            self.zoom_factor /= 1.1  # Zoom out
+
+        # Show the image with the updated zoom factor
+        self.show_image()
+
+    def zoom_image(self, img):
+        # Resize the image based on the zoom factor
+        new_size = tuple(int(dim * self.zoom_factor) for dim in img.size)
+        img = img.resize(new_size, Image.ANTIALIAS)
+        return img
     
     def move_to_folder(self, folder):
         if self.current_image_index < len(self.image_list):
